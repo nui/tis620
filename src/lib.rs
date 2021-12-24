@@ -1,4 +1,5 @@
-use std::fmt::{Display, Formatter, Write};
+use std::error::Error;
+use std::fmt::{self, Display, Write};
 
 /// Decode arbitrary octets as String. Returns a Result containing a String.
 pub fn decode<T: AsRef<[u8]>>(input: T) -> Result<String, DecodeError> {
@@ -212,7 +213,7 @@ declare_thai_char!([
 ]);
 
 impl Display for ThaiChar {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_char(self.as_char())
     }
 }
@@ -240,14 +241,25 @@ pub struct DecodeError(pub u8);
 pub struct EncodeError(pub char);
 
 impl Display for DecodeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#x?} is invalid tis602 byte", self.0)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#X?} is invalid tis602 byte.", self.0)
     }
 }
 
 impl Display for EncodeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?} is invalid tis620 character", self.0)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} is invalid tis620 character.", self.0)
+    }
+}
+
+impl Error for DecodeError {
+    fn description(&self) -> &str {
+        "invalid byte"
+    }
+}
+impl Error for EncodeError {
+    fn description(&self) -> &str {
+        "invalid character"
     }
 }
 
@@ -277,7 +289,7 @@ mod tests {
     #[ignore]
     #[test]
     fn display_error() {
-        println!("{}", DecodeError(40));
-        println!("{}", EncodeError('ก'));
+        println!("display: {}", DecodeError(40));
+        println!("display: {}", EncodeError('µ'));
     }
 }

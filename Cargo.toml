@@ -1,6 +1,6 @@
 [package]
 name = "tis620"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 description = "A rust crate to handle Thai Industrial Standard 620 (tis620) characters"
 license = "MIT OR Apache-2.0"
