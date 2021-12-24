@@ -1,5 +1,58 @@
 use std::fmt::{Display, Formatter, Write};
 
+/// Decode arbitrary octets as String. Returns a Result containing a String.
+pub fn decode<T: AsRef<[u8]>>(input: T) -> Result<String, DecodeError> {
+    let input = input.as_ref();
+    let mut out = String::with_capacity(input.len());
+    for &b in input {
+        if is_ascii(b) {
+            out.push(b as char);
+        } else {
+            let thai_char = ThaiChar::from_u8(b).ok_or(DecodeError(b))?;
+            out.push(thai_char.as_char());
+        }
+    }
+    Ok(out)
+}
+
+/// Encode arbitrary string as tis620. Returns a Result containing a Vec.
+pub fn encode(input: &str) -> Result<Vec<u8>, EncodeError> {
+    let mut out = Vec::with_capacity(input.len());
+    for c in input.chars() {
+        if c.is_ascii() {
+            out.push(c as u8);
+        } else if let Some(thai_char) = ThaiChar::from_char(c) {
+            out.push(thai_char.as_u8());
+        } else {
+            return Err(EncodeError(c));
+        }
+    }
+    Ok(out)
+}
+
+/// Encode arbitrary string as tis620, replace invalid character with `replacement`. Returns a Vec.
+///
+/// If replacement is None, silently drop invalid character.
+///
+/// # Panics
+///
+/// Panics if replacement character is not a legit tis620 character.
+pub fn encode_lossy(input: &str, replacement: Option<char>) -> Vec<u8> {
+    let replacement = replacement
+        .map(|ch| char_to_tis620_byte(ch).expect("replacement is not legit tis620 character"));
+    let mut out = Vec::with_capacity(input.len());
+    for c in input.chars() {
+        if c.is_ascii() {
+            out.push(c as u8);
+        } else if let Some(thai_char) = ThaiChar::from_char(c) {
+            out.push(thai_char.as_u8());
+        } else if let Some(replacement) = replacement {
+            out.push(replacement);
+        }
+    }
+    out
+}
+
 macro_rules! declare_thai_char {
     ([$(($value:literal, $char:literal, $variant:ident)),+ $(,)?]) => {
         // reference
@@ -7,9 +60,9 @@ macro_rules! declare_thai_char {
         // https://en.wikipedia.org/wiki/Thai_Industrial_Standard_620-2533
         /// An enum represent thai character
         #[repr(u8)]
-        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-        #[allow(non_camel_case_types)]
+        #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
         #[allow(clippy::upper_case_acronyms)]
+        #[allow(non_camel_case_types)]
         pub enum ThaiChar {
             $(
                 $variant = $value
@@ -53,6 +106,19 @@ macro_rules! declare_thai_char {
             }
         }
     };
+}
+
+fn is_ascii(byte: u8) -> bool {
+    byte <= 0x7F
+}
+
+fn char_to_tis620_byte(ch: char) -> Option<u8> {
+    let byte = if ch.is_ascii() {
+        ch as u8
+    } else {
+        ThaiChar::from_char(ch)?.as_u8()
+    };
+    Some(byte)
 }
 
 declare_thai_char!([
@@ -160,76 +226,29 @@ impl TryFrom<char> for ThaiChar {
 }
 
 impl From<ThaiChar> for char {
-    fn from(thai_char: ThaiChar) -> Self {
-        thai_char.as_char()
+    fn from(tch: ThaiChar) -> Self {
+        tch.as_char()
     }
 }
 
-/// Encode string to tis620
-pub fn encode(input: &str) -> Option<Vec<u8>> {
-    let mut out = Vec::<u8>::with_capacity(input.len());
-    for c in input.chars() {
-        if c.is_ascii() {
-            out.push(c as u8);
-        } else if let Some(thai_char) = ThaiChar::from_char(c) {
-            out.push(thai_char.as_u8());
-        } else {
-            return None;
-        }
-    }
-    Some(out)
-}
-
-/// Encode string to tis620 with replacement character.
-///
-/// If replacement is None, silently drop invalid character.
-///
-/// # Panics
-///
-/// Panics if replacement character is not legit.
-pub fn encode_replace_with(input: &str, replacement: Option<char>) -> Vec<u8> {
-    let replacement = replacement.map(|char| {
-        if char.is_ascii() {
-            char as u8
-        } else {
-            ThaiChar::from_char(char)
-                .expect("replacement is thai char")
-                .as_u8()
-        }
-    });
-    let mut out = Vec::<u8>::with_capacity(input.len());
-    for c in input.chars() {
-        if c.is_ascii() {
-            out.push(c as u8);
-        } else if let Some(thai_char) = ThaiChar::from_char(c) {
-            out.push(thai_char.as_u8());
-        } else if let Some(replacement) = replacement {
-            out.push(replacement);
-        }
-    }
-    out
-}
-
+/// Errors that can occur while decoding.
 #[derive(Debug)]
-pub struct DecodeError(u8);
+pub struct DecodeError(pub u8);
+
+/// Errors that can occur while encoding.
+#[derive(Debug)]
+pub struct EncodeError(pub char);
 
 impl Display for DecodeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} is not valid tis602 byte", self.0)
+        write!(f, "{:#x?} is invalid tis602 byte", self.0)
     }
 }
 
-pub fn decode(input: &[u8]) -> Result<String, DecodeError> {
-    let mut out = String::with_capacity(input.len());
-    for &b in input {
-        if b <= 0x7F {
-            out.push(b as char);
-        } else {
-            let thai_char = ThaiChar::from_u8(b).ok_or(DecodeError(b))?;
-            out.push(thai_char.as_char());
-        }
+impl Display for EncodeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?} is invalid tis620 character", self.0)
     }
-    Ok(out)
 }
 
 #[cfg(test)]
@@ -253,5 +272,12 @@ mod tests {
                 assert_eq!(str_from_tis620, thai_char.to_string());
             }
         }
+    }
+
+    #[ignore]
+    #[test]
+    fn display_error() {
+        println!("{}", DecodeError(40));
+        println!("{}", EncodeError('ก'));
     }
 }
