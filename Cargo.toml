@@ -1,10 +1,11 @@
 [package]
 name = "tis620"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 description = "A library for handling Thai Industrial Standard 620 (TIS-620) characters"
 license = "MIT OR Apache-2.0"
-categories = ["encoding", "charset", "thai"]
+categories = ["encoding"]
+keywords = ["charset", "thai"]
 authors = ["Narongwet Mongkonsatcha <narongwet.m@gmail.com>"]
 repository = "https://github.com/nui/tis620"
 
