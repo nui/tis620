@@ -1,6 +1,6 @@
 [package]
 name = "tis620"
-version = "0.0.7"
+version = "0.1.0"
 edition = "2021"
 description = "A library for handling Thai Industrial Standard 620 (TIS-620) characters"
 license = "MIT OR Apache-2.0"
