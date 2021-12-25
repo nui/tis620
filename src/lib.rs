@@ -48,7 +48,7 @@ pub fn encode_buf(input: &str, buffer: &mut Vec<u8>) -> Result<(), EncodeError> 
     Ok(())
 }
 
-/// Encode arbitrary string as TIS-620. Returns a Vec.
+/// Encode arbitrary string as TIS-620, including invalid characters. Returns a Vec.
 ///
 /// When invalid character is found, call `f` to get replacement character.
 /// If `None` is returned, silently drop invalid character.
@@ -61,7 +61,8 @@ where
     buffer
 }
 
-/// Encode arbitrary string as TIS-620. Writes into the supplied buffer to avoid allocation.
+/// Encode arbitrary string as TIS-620, including invalid characters.
+/// Writes into the supplied buffer to avoid allocation.
 ///
 /// When invalid character is found, call `f` to get replacement character.
 /// If `None` is returned, silently drop invalid character.
