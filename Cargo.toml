@@ -14,4 +14,11 @@ repository = "https://github.com/nui/tis620"
 [dependencies]
 
 [dev-dependencies]
+criterion = "0.3"
+encoding_rs = "0.8.30"
 hex = "0.4.3"
+rand = "0.8.4"
+
+[[bench]]
+name = "benchmarks"
+harness = false
