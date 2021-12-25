@@ -20,8 +20,7 @@ pub fn decode_buf<T: AsRef<[u8]>>(input: T, buffer: &mut String) -> Result<(), D
         if is_ascii(byte) {
             buffer.push(char::from(byte));
         } else {
-            let tc = ThaiChar::from_tis620_byte(byte).ok_or(DecodeError(byte))?;
-            buffer.push(tc.to_char());
+            buffer.push(ThaiChar::byte_to_char(byte).ok_or(DecodeError(byte))?);
         }
     }
     Ok(())

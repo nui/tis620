@@ -20,7 +20,6 @@ fn prepare_input(len: usize) -> String {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let message = prepare_input(2_000_000);
-    dbg!(message.len());
     let encoded = tis620::encode(&message).unwrap();
     let encoded2 = WINDOWS_874.encode(black_box(&message)).0;
     assert_eq!(encoded.as_slice(), encoded2.as_ref());

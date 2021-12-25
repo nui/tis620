@@ -51,6 +51,16 @@ macro_rules! declare_thai_char {
                     ),+,
                 }
             }
+
+            pub fn byte_to_char(byte: u8) -> Option<char> {
+                let ch = match byte {
+                    $(
+                        $value => $char
+                    ),+,
+                    _ => return None,
+                };
+                Some(ch)
+            }
         }
     };
 }
