@@ -119,9 +119,9 @@ mod tests {
         for line in test_cases.lines() {
             if let Some((tis620_char_hex, utf8_char_hex)) = line.split_once(',') {
                 let tis620_char_hex = tis620_char_hex.trim_start_matches("0x");
-                let tis620_char_bytes = hex::decode(tis620_char_hex).expect("TIS-620 bytes");
+                let tis620_char_byte = hex::decode(tis620_char_hex).expect("TIS-620 byte");
                 let str_from_tis620 =
-                    decode(&tis620_char_bytes).expect("TIS-620 bytes is thai char");
+                    decode(&tis620_char_byte).expect("string with single thai character");
 
                 let utf8_u32 = u32::from_str_radix(utf8_char_hex.trim_start_matches("0x"), 16)
                     .expect("utf8 u32");
