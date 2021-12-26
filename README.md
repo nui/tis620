@@ -18,5 +18,11 @@ assert_eq!(decoded, message);
 
 [more examples](https://github.com/nui/tis620/tree/main/examples)
 
+## tis620 vs encoding_rs(v0.8.30)
+
+- `tis620::encode` is slightly faster than `encoding_rs::WINDOWS_874::encode`
+- `tis620` provide lossy encoding
+- `encoding_rs::WINDOWS_874::decode` is 2x faster than `tis620::decode`
+
 ---
 This crate is inspired by [varokas/tis620](https://github.com/varokas/tis620).
