@@ -29,16 +29,16 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     drop(encoded2);
     drop(decoded);
     drop(decoded2);
-    c.bench_function("encode", |b| {
+    c.bench_function("tis620::encode", |b| {
         b.iter(|| tis620::encode(black_box(&message)).unwrap())
     });
-    c.bench_function("encoding.rs encode", |b| {
+    c.bench_function("WINDOWS_874::encode", |b| {
         b.iter(|| WINDOWS_874.encode(black_box(&message)))
     });
-    c.bench_function("decode", |b| {
+    c.bench_function("tis620::decode", |b| {
         b.iter(|| tis620::decode(black_box(&encoded)).unwrap())
     });
-    c.bench_function("encoding.rs decode", |b| {
+    c.bench_function("WINDOWS_874::decode", |b| {
         b.iter(|| WINDOWS_874.decode(black_box(&encoded)))
     });
 }
