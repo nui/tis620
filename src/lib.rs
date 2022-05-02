@@ -1,3 +1,5 @@
+#![deny(rust_2018_idioms)]
+
 use std::error::Error;
 use std::fmt::{self, Display};
 
